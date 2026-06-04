@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Three.js 实时交互 3D 粒子系统</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #000;
+      font-family: Arial, "Microsoft YaHei", sans-serif;
+      color: #fff;
+    }
+
+    canvas {
+      display: block;
+    }
+
+    .title {
+      position: fixed;
+      top: 24px;
+      left: 28px;
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    .title h1 {
+      font-size: 22px;
+      font-weight: 500;
+      letter-spacing: 4px;
+      text-shadow: 0 0 24px rgba(120, 180, 255, 0.9);
+    }
+
+    .title p {
+      margin-top: 8px;
+      font-size: 13px;
+      color: rgba(220, 235, 255, 0.75);
+      letter-spacing: 1px;
+    }
+
+    .panel {
+      position: fixed;
+      right: 24px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 220px;
+      padding: 18px;
+      border-radius: 20px;
+      background: rgba(8, 14, 30, 0.55);
+      border: 1px solid rgba(130, 190, 255, 0.28);
+      backdrop-filter: blur(16px);
+      box-shadow: 0 0 35px rgba(80, 140, 255, 0.25);
+      z-index: 10;
+    }
+
+    .panel h2 {
+      font-size: 15px;
+      font-weight: 500;
+      margin-bottom: 14px;
+      letter-spacing: 2px;
+      color: #d9ecff;
+    }
+
+    .model-buttons {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .model-buttons button {
+      height: 38px;
+      border: 1px solid rgba(120, 180, 255, 0.35);
+      border-radius: 12px;
+      background: rgba(30, 80, 180, 0.18);
+      color: rgba(235, 245, 255, 0.9);
+      font-size: 13px;
+      letter-spacing: 1px;
+      cursor: pointer;
+      transition: 0.25s;
+    }
+
+    .model-buttons button:hover,
+    .model-buttons button.active {
+      background: rgba(90, 160, 255, 0.35);
+      box-shadow: 0 0 20px rgba(90, 160, 255, 0.45);
+      transform: translateX(-4px);
+    }
+
+    .control-group {
+      margin-bottom: 16px;
+    }
+
+    .control-group label {
+      display: block;
+      font-size: 12px;
+      margin-bottom: 8px;
+      color: rgba(215, 230, 255, 0.8);
+      letter-spacing: 1px;
+    }
+
+    input[type="color"] {
+      width: 100%;
+      height: 38px;
+      border: none;
+      border-radius: 10px;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: #72b7ff;
+      cursor: pointer;
+    }
+
+    .density-value {
+      font-size: 12px;
+      color: rgba(220, 235, 255, 0.75);
+      margin-top: 6px;
+    }
+
+    .fullscreen-btn {
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
+      z-index: 15;
+      width: 52px;
+      height: 52px;
+      border: 1px solid rgba(130, 190, 255, 0.35);
+      border-radius: 50%;
+      background: rgba(8, 14, 30, 0.65);
+      color: #fff;
+      font-size: 22px;
+      cursor: pointer;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 0 28px rgba(90, 160, 255, 0.3);
+      transition: 0.25s;
+    }
+
+    .fullscreen-btn:hover {
+      transform: scale(1.08);
+      box-shadow: 0 0 35px rgba(90, 160, 255, 0.55);
+    }
+
+    .camera-window {
+      position: fixed;
+      left: 24px;
+      bottom: 24px;
+      width: 260px;
+      height: 160px;
+      border-radius: 18px;
+      overflow: hidden;
+      z-index: 12;
+      background: rgba(8, 14, 30, 0.65);
+      border: 1px solid rgba(130, 190, 255, 0.35);
+      box-shadow: 0 0 35px rgba(80, 140, 255, 0.28);
+      resize: both;
+      min-width: 180px;
+      min-height: 110px;
+      max-width: 520px;
+      max-height: 360px;
+    }
+
+    .camera-window video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transform: scaleX(-1);
+      opacity: 0.9;
+    }
+
+    .camera-label {
+      position: absolute;
+      left: 10px;
+      top: 8px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: rgba(0, 0, 0, 0.45);
+      color: rgba(230, 245, 255, 0.9);
+      font-size: 11px;
+      letter-spacing: 1px;
+    }
+
+    .cursor-glow {
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 20;
+      transform: translate(-50%, -50%);
+      border: 1px solid rgba(180, 230, 255, 0.85);
+      box-shadow:
+        0 0 20px rgba(80, 190, 255, 0.9),
+        0 0 45px rgba(190, 80, 255, 0.65),
+        0 0 80px rgba(255, 120, 180, 0.4);
+      mix-blend-mode: screen;
+    }
+
+    .hint {
+      position: fixed;
+      bottom: 24px;
+      left: 310px;
+      z-index: 10;
+      color: rgba(220, 235, 255, 0.65);
+      font-size: 12px;
+      letter-spacing: 1px;
+      pointer-events: none;
+    }
+
+    @media (max-width: 768px) {
+      .panel {
+        right: 12px;
+        width: 180px;
+      }
+
+      .camera-window {
+        width: 200px;
+        height: 125px;
+      }
+
+      .hint {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="title">
+    <h1>INTERACTIVE 3D PARTICLE SYSTEM</h1>
+    <p>鼠标捕捉 · 粒子扩散收缩 · 模型旋转 · 星云辉光</p>
+  </div>
+
+  <div class="panel">
+    <h2>粒子模型</h2>
+
+    <div class="model-buttons">
+      <button class="active" data-model="nebula">星云 Nebula</button>
+      <button data-model="firework">烟花 Firework</button>
+      <button data-model="saturn">土星 Saturn</button>
+      <button data-model="flower">花朵 Flower</button>
+    </div>
+
+    <div class="control-group">
+      <label>基础颜色</label>
+      <input type="color" id="baseColor" value="#5fb7ff" />
+    </div>
+
+    <div class="control-group">
+      <label>粒子密度</label>
+      <input type="range" id="densitySlider" min="800" max="7000" step="100" value="3500" />
+      <div class="density-value" id="densityValue">3500 颗粒子</div>
+    </div>
+  </div>
+
+  <div class="camera-window" id="cameraWindow">
+    <video id="camera" autoplay muted playsinline></video>
+    <div class="camera-label">CAMERA LIVE</div>
+  </div>
+
+  <div class="hint">
+    鼠标移动方向控制扩散与收缩，鼠标位置控制旋转，点击可触发爆发效果
+  </div>
+
+  <button class="fullscreen-btn" id="fullscreenBtn">⛶</button>
+  <div class="cursor-glow" id="cursorGlow"></div>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
+
+  <script type="module">
+    import * as THREE from "three";
+    import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
+    import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
+    import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
+
+    let PARTICLE_COUNT = 3500;
+    let currentModel = "nebula";
+
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2(0x02040a, 0.012);
+
+    const camera = new THREE.PerspectiveCamera(
+      65,
+      window.innerWidth / window.innerHeight,
+      0.1,
+      1200
+    );
+    camera.position.set(0, 0, 58);
+
+    const renderer = new THREE.WebGLRenderer({
+      antialias: true,
+      alpha: false
+    });
+
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setClearColor(0x000000, 1);
+    document.body.appendChild(renderer.domElement);
+
+    const composer = new EffectComposer(renderer);
+    composer.addPass(new RenderPass(scene, camera));
+
+    const bloomPass = new UnrealBloomPass(
+      new THREE.Vector2(window.innerWidth, window.innerHeight),
+      1.65,
+      0.62,
+      0.08
+    );
+    composer.addPass(bloomPass);
+
+    const clock = new THREE.Clock();
+
+    const mouse = {
+      x: 0,
+      y: 0,
+      px: 0,
+      py: 0,
+      dx: 0,
+      dy: 0,
+      speed: 0
+    };
+
+    let burstPower = 0;
+    let baseHueOffset = 0;
+    let baseColor = new THREE.Color("#5fb7ff");
+
+    const cursorGlow = document.getElementById("cursorGlow");
+    const densitySlider = document.getElementById("densitySlider");
+    const densityValue = document.getElementById("densityValue");
+    const baseColorInput = document.getElementById("baseColor");
+
+    let particleSystem;
+    let particleGeometry;
+    let particleMaterial;
+
+    let positions;
+    let targetPositions;
+    let colors;
+    let sizes;
+    let randomOffsets;
+
+    initParticles(PARTICLE_COUNT);
+    initBackgroundStars();
+    initCameraPreview();
+    animate();
+
+    function initParticles(count) {
+      if (particleSystem) {
+        scene.remove(particleSystem);
+        particleGeometry.dispose();
+        particleMaterial.dispose();
+      }
+
+      PARTICLE_COUNT = count;
+
+      positions = new Float32Array(PARTICLE_COUNT * 3);
+      targetPositions = new Float32Array(PARTICLE_COUNT * 3);
+      colors = new Float32Array(PARTICLE_COUNT * 3);
+      sizes = new Float32Array(PARTICLE_COUNT);
+      randomOffsets = new Float32Array(PARTICLE_COUNT * 4);
+
+      for (let i = 0; i < PARTICLE_COUNT; i++) {
+        const i3 = i * 3;
+
+        positions[i3] = (Math.random() - 0.5) * 80;
+        positions[i3 + 1] = (Math.random() - 0.5) * 80;
+        positions[i3 + 2] = (Math.random() - 0.5) * 80;
+
+        targetPositions[i3] = positions[i3];
+        targetPositions[i3 + 1] = positions[i3 + 1];
+        targetPositions[i3 + 2] = positions[i3 + 2];
+
+        const c = new THREE.Color();
+        c.setHSL(Math.random(), 0.92, 0.62);
+
+        colors[i3] = c.r;
+        colors[i3 + 1] = c.g;
+        colors[i3 + 2] = c.b;
+
+        sizes[i] = Math.random() * 2.6 + 0.8;
+
+        randomOffsets[i * 4] = Math.random();
+        randomOffsets[i * 4 + 1] = Math.random();
+        randomOffsets[i * 4 + 2] = Math.random();
+        randomOffsets[i * 4 + 3] = Math.random();
+      }
+
+      particleGeometry = new THREE.BufferGeometry();
+      particleGeometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+      particleGeometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+      particleGeometry.setAttribute("size", new THREE.BufferAttribute(sizes, 1));
+
+      particleMaterial = new THREE.ShaderMaterial({
+        transparent: true,
+        depthWrite: false,
+        vertexColors: true,
+        blending: THREE.AdditiveBlending,
+        uniforms: {
+          uTime: { value: 0 },
+          uPixelRatio: { value: Math.min(window.devicePixelRatio, 2) }
+        },
+        vertexShader: `
+          attribute float size;
+          varying vec3 vColor;
+          varying float vAlpha;
+          uniform float uTime;
+          uniform float uPixelRatio;
+
+          void main() {
+            vColor = color;
+
+            vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+
+            float depth = clamp(1.0 - (-mvPosition.z / 180.0), 0.25, 1.0);
+            float pulse = 1.0 + 0.32 * sin(uTime * 2.5 + position.x * 0.08 + position.y * 0.06);
+
+            gl_PointSize = size * pulse * uPixelRatio * (360.0 / max(18.0, -mvPosition.z));
+            vAlpha = depth;
+
+            gl_Position = projectionMatrix * mvPosition;
+          }
+        `,
+        fragmentShader: `
+          varying vec3 vColor;
+          varying float vAlpha;
+
+          void main() {
+            vec2 uv = gl_PointCoord - vec2(0.5);
+            float d = length(uv);
+
+            float core = smoothstep(0.20, 0.0, d);
+            float glow = smoothstep(0.50, 0.04, d) * 0.65;
+            float alpha = core + glow;
+
+            vec3 color = vColor;
+            color += glow * vec3(0.45, 0.7, 1.0);
+
+            gl_FragColor = vec4(color, alpha * vAlpha);
+          }
+        `
+      });
+
+      particleSystem = new THREE.Points(particleGeometry, particleMaterial);
+      scene.add(particleSystem);
+
+      updateModelTargets(0);
+    }
+
+    function initBackgroundStars() {
+      const starCount = 5500;
+      const starPositions = new Float32Array(starCount * 3);
+      const starColors = new Float32Array(starCount * 3);
+
+      for (let i = 0; i < starCount; i++) {
+        const radius = 160 + Math.random() * 520;
+        const theta = Math.random() * Math.PI * 2;
+        const phi = Math.acos(2 * Math.random() - 1);
+
+        const i3 = i * 3;
+
+        starPositions[i3] = radius * Math.sin(phi) * Math.cos(theta);
+        starPositions[i3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
+        starPositions[i3 + 2] = radius * Math.cos(phi);
+
+        const c = new THREE.Color();
+        c.setHSL(0.55 + Math.random() * 0.35, 0.75, 0.45 + Math.random() * 0.35);
+
+        starColors[i3] = c.r;
+        starColors[i3 + 1] = c.g;
+        starColors[i3 + 2] = c.b;
+      }
+
+      const starGeometry = new THREE.BufferGeometry();
+      starGeometry.setAttribute("position", new THREE.BufferAttribute(starPositions, 3));
+      starGeometry.setAttribute("color", new THREE.BufferAttribute(starColors, 3));
+
+      const starMaterial = new THREE.PointsMaterial({
+        size: 0.85,
+        vertexColors: true,
+        transparent: true,
+        opacity: 0.85,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending
+      });
+
+      const stars = new THREE.Points(starGeometry, starMaterial);
+      scene.add(stars);
+
+      function rotateStars() {
+        requestAnimationFrame(rotateStars);
+        stars.rotation.y += 0.00035;
+        stars.rotation.x += 0.00015;
+      }
+
+      rotateStars();
+    }
+
+    function initCameraPreview() {
+      const video = document.getElementById("camera");
+
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        return;
+      }
+
+      navigator.mediaDevices.getUserMedia({
+        video: {
+          width: 640,
+          height: 360,
+          facingMode: "user"
+        },
+        audio: false
+      }).then(stream => {
+        video.srcObject = stream;
+      }).catch(() => {
+        const cameraWindow = document.getElementById("cameraWindow");
+        cameraWindow.innerHTML = `
+          <div style="
+            width:100%;
+            height:100%;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            color:rgba(220,235,255,.7);
+            font-size:12px;
+            text-align:center;
+            padding:16px;
+          ">
+            摄像头未授权<br/>仍可使用鼠标捕捉交互
+          </div>
+        `;
+      });
+    }
+
+    function updateModelTargets(time) {
+      for (let i = 0; i < PARTICLE_COUNT; i++) {
+        const t = i / PARTICLE_COUNT;
+        const i3 = i * 3;
+
+        let p;
+
+        if (currentModel === "nebula") {
+          p = createNebulaPoint(t, i, time);
+        } else if (currentModel === "firework") {
+          p = createFireworkPoint(t, i, time);
+        } else if (currentModel === "saturn") {
+          p = createSaturnPoint(t, i, time);
+        } else if (currentModel === "flower") {
+          p = createFlowerPoint(t, i, time);
+        }
+
+        targetPositions[i3] = p.x;
+        targetPositions[i3 + 1] = p.y;
+        targetPositions[i3 + 2] = p.z;
+      }
+    }
+
+    function createNebulaPoint(t, i, time) {
+      const r = Math.sqrt(t) * 34;
+      const angle = t * Math.PI * 18 + randomOffsets[i * 4] * Math.PI * 2;
+
+      const spiral = 1.0 + 0.45 * Math.sin(angle * 3 + time * 0.35);
+
+      const x = Math.cos(angle) * r * spiral;
+      const y = Math.sin(angle) * r * spiral;
+      const z = Math.sin(angle * 0.7 + time * 0.5) * 18 + (randomOffsets[i * 4 + 1] - 0.5) * 22;
+
+      return new THREE.Vector3(x, y, z);
+    }
+
+    function createFireworkPoint(t, i, time) {
+      const seedA = randomOffsets[i * 4] * Math.PI * 2;
+      const seedB = Math.acos(2 * randomOffsets[i * 4 + 1] - 1);
+
+      const shell = Math.floor(t * 9);
+      const r = 8 + shell * 4.2 + Math.sin(time * 1.8 + shell) * 2.5;
+
+      const x = Math.sin(seedB) * Math.cos(seedA) * r;
+      const y = Math.sin(seedB) * Math.sin(seedA) * r;
+      const z = Math.cos(seedB) * r;
+
+      return new THREE.Vector3(x, y, z);
+    }
+
+    function createSaturnPoint(t, i, time) {
+      const ringRatio = 0.72;
+
+      if (t < ringRatio) {
+        const local = t / ringRatio;
+        const angle = local * Math.PI * 2 * 11 + randomOffsets[i * 4] * 0.15;
+        const r = 23 + randomOffsets[i * 4 + 1] * 14;
+
+        const x = Math.cos(angle) * r;
+        const y = Math.sin(angle) * r * 0.42;
+        const z = Math.sin(angle * 2 + time) * 1.5 + (randomOffsets[i * 4 + 2] - 0.5) * 3;
+
+        return new THREE.Vector3(x, y, z);
+      } else {
+        const local = (t - ringRatio) / (1 - ringRatio);
+        const theta = randomOffsets[i * 4] * Math.PI * 2;
+        const phi = Math.acos(2 * randomOffsets[i * 4 + 1] - 1);
+        const r = 12 * Math.cbrt(local + 0.05);
+
+        const x = Math.sin(phi) * Math.cos(theta) * r;
+        const y = Math.sin(phi) * Math.sin(theta) * r;
+        const z = Math.cos(phi) * r;
+
+        return new THREE.Vector3(x, y, z);
+      }
+    }
+
+    function createFlowerPoint(t, i, time) {
+      const angle = t * Math.PI * 2 * 10;
+      const petals = 7;
+      const r = 8 + 22 * Math.abs(Math.sin(petals * angle));
+      const twist = time * 0.25 + randomOffsets[i * 4] * 0.5;
+
+      const x = Math.cos(angle + twist) * r;
+      const y = Math.sin(angle + twist) * r;
+      const z = Math.sin(angle * 3 + time) * 10 + Math.cos(petals * angle) * 4;
+
+      return new THREE.Vector3(x, y, z);
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+
+      const elapsed = clock.getElapsedTime();
+      const delta = clock.getDelta();
+
+      particleMaterial.uniforms.uTime.value = elapsed;
+
+      updateModelTargets(elapsed);
+
+      const positionArray = particleGeometry.attributes.position.array;
+      const colorArray = particleGeometry.attributes.color.array;
+
+      const mouseForce = Math.min(mouse.speed * 18, 3.2);
+      const directionForce = mouse.dx > 0 ? 1 : -1;
+
+      const expansion =
+        1 +
+        mouseForce * 0.12 * directionForce +
+        burstPower * 0.9 +
+        Math.sin(elapsed * 1.4) * 0.035;
+
+      const rotationTargetX = mouse.y * 0.85;
+      const rotationTargetY = mouse.x * 1.25;
+
+      particleSystem.rotation.x += (rotationTargetX - particleSystem.rotation.x) * 0.035;
+      particleSystem.rotation.y += (rotationTargetY - particleSystem.rotation.y) * 0.035;
+      particleSystem.rotation.z += 0.0025 + mouse.dx * 0.015;
+
+      const rotationHue =
+        (particleSystem.rotation.x + particleSystem.rotation.y + particleSystem.rotation.z) * 0.08;
+
+      baseHueOffset += 0.0015;
+
+      const baseHSL = {};
+      baseColor.getHSL(baseHSL);
+
+      for (let i = 0; i < PARTICLE_COUNT; i++) {
+        const i3 = i * 3;
+
+        let tx = targetPositions[i3] * expansion;
+        let ty = targetPositions[i3 + 1] * expansion;
+        let tz = targetPositions[i3 + 2] * expansion;
+
+        const wave =
+          Math.sin(elapsed * 2.2 + i * 0.025) *
+          (1.2 + mouseForce * 2.5);
+
+        tx += Math.sin(i * 0.019 + elapsed) * wave;
+        ty += Math.cos(i * 0.023 + elapsed) * wave;
+        tz += Math.sin(i * 0.017 + elapsed * 1.4) * wave;
+
+        const mouseDist = Math.sqrt(
+          Math.pow(tx / 40 - mouse.x, 2) +
+          Math.pow(ty / 28 - mouse.y, 2)
+        );
+
+        const attract = Math.max(0, 1 - mouseDist) * mouseForce;
+
+        tx += mouse.x * attract * 10;
+        ty += mouse.y * attract * 8;
+        tz += attract * 14;
+
+        positionArray[i3] += (tx - positionArray[i3]) * 0.045;
+        positionArray[i3 + 1] += (ty - positionArray[i3 + 1]) * 0.045;
+        positionArray[i3 + 2] += (tz - positionArray[i3 + 2]) * 0.045;
+
+        const hue =
+          baseHSL.h +
+          rotationHue +
+          baseHueOffset +
+          i / PARTICLE_COUNT * 0.42 +
+          Math.sin(elapsed * 0.6 + i * 0.01) * 0.08;
+
+        const color = new THREE.Color();
+        color.setHSL(hue % 1, 0.92, 0.58 + Math.sin(elapsed + i) * 0.08);
+
+        colorArray[i3] = color.r;
+        colorArray[i3 + 1] = color.g;
+        colorArray[i3 + 2] = color.b;
+      }
+
+      particleGeometry.attributes.position.needsUpdate = true;
+      particleGeometry.attributes.color.needsUpdate = true;
+
+      burstPower *= 0.92;
+      mouse.speed *= 0.88;
+
+      camera.position.x += (mouse.x * 5 - camera.position.x) * 0.018;
+      camera.position.y += (mouse.y * 4 - camera.position.y) * 0.018;
+      camera.position.z = 58 + Math.sin(elapsed * 0.35) * 4 - burstPower * 8;
+      camera.lookAt(0, 0, 0);
+
+      bloomPass.strength = 1.55 + burstPower * 1.2 + Math.min(mouse.speed * 4, 0.6);
+
+      composer.render();
+    }
+
+    window.addEventListener("mousemove", e => {
+      const x = e.clientX / window.innerWidth * 2 - 1;
+      const y = -(e.clientY / window.innerHeight * 2 - 1);
+
+      mouse.dx = x - mouse.x;
+      mouse.dy = y - mouse.y;
+      mouse.speed = Math.min(Math.sqrt(mouse.dx * mouse.dx + mouse.dy * mouse.dy) * 8, 1.8);
+
+      mouse.px = mouse.x;
+      mouse.py = mouse.y;
+      mouse.x = x;
+      mouse.y = y;
+
+      cursorGlow.style.left = `${e.clientX}px`;
+      cursorGlow.style.top = `${e.clientY}px`;
+    });
+
+    window.addEventListener("click", () => {
+      burstPower = 1.2;
+    });
+
+    document.querySelectorAll(".model-buttons button").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".model-buttons button").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+
+        currentModel = btn.dataset.model;
+        burstPower = 0.9;
+      });
+    });
+
+    baseColorInput.addEventListener("input", e => {
+      baseColor = new THREE.Color(e.target.value);
+    });
+
+    densitySlider.addEventListener("input", e => {
+      densityValue.textContent = `${e.target.value} 颗粒子`;
+    });
+
+    densitySlider.addEventListener("change", e => {
+      initParticles(Number(e.target.value));
+      burstPower = 0.9;
+    });
+
+    document.getElementById("fullscreenBtn").addEventListener("click", () => {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen();
+      } else {
+        document.exitFullscreen();
+      }
+    });
+
+    window.addEventListener("resize", () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      composer.setSize(window.innerWidth, window.innerHeight);
+      bloomPass.setSize(window.innerWidth, window.innerHeight);
+
+      if (particleMaterial) {
+        particleMaterial.uniforms.uPixelRatio.value = Math.min(window.devicePixelRatio, 2);
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,1220 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>案例库 · 中盛集团技术十五部</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #060d1a;
+            --glass: rgba(8, 16, 35, 0.72);
+            --glass-strong: rgba(8, 16, 35, 0.88);
+            --glass-border: rgba(0, 200, 167, 0.12);
+            --accent: #00c9a7;
+            --accent-glow: rgba(0, 201, 167, 0.15);
+            --accent-blue: #3b82ff;
+            --accent-purple: #8b5cf6;
+            --text: #e4edf8;
+            --text-dim: rgba(190, 210, 235, 0.65);
+            --text-muted: rgba(150, 175, 210, 0.45);
+            --radius: 16px;
+            --font-display: 'Sora', -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            --font-body: -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Segoe UI', sans-serif;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font-body);
+            overflow-x: hidden;
+        }
+
+        /* ===== Particle Background ===== */
+        #particle-bg {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* ===== Cursor Glow ===== */
+        .cursor-glow {
+            position: fixed;
+            width: 18px; height: 18px;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            transform: translate(-50%, -50%);
+            border: 1px solid rgba(0, 200, 167, 0.45);
+            box-shadow: 0 0 12px rgba(0, 200, 167, 0.35), 0 0 28px rgba(59, 130, 255, 0.15);
+            transition: opacity 0.3s;
+            opacity: 0;
+        }
+        body:hover .cursor-glow { opacity: 1; }
+
+        /* ===== Navbar ===== */
+        .navbar {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 40px;
+            height: 64px;
+            background: transparent;
+            transition: background 0.4s, backdrop-filter 0.4s, box-shadow 0.4s;
+        }
+        .navbar.scrolled {
+            background: rgba(6, 13, 26, 0.88);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            box-shadow: 0 1px 0 var(--glass-border);
+        }
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: var(--font-display);
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+        .brand-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: var(--accent);
+            box-shadow: 0 0 8px var(--accent);
+            animation: pulse 2s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.8); }
+        }
+        .nav-links { display: flex; gap: 32px; }
+        .nav-links a {
+            color: var(--text-dim);
+            text-decoration: none;
+            font-size: 14px;
+            letter-spacing: 0.5px;
+            transition: color 0.3s;
+            position: relative;
+        }
+        .nav-links a:hover { color: var(--accent); }
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -4px; left: 0;
+            width: 0; height: 1px;
+            background: var(--accent);
+            transition: width 0.3s;
+        }
+        .nav-links a:hover::after { width: 100%; }
+        .nav-action {
+            background: transparent;
+            border: 1px solid var(--glass-border);
+            color: var(--accent);
+            padding: 8px 20px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-family: var(--font-display);
+            font-weight: 500;
+            cursor: pointer;
+            letter-spacing: 0.5px;
+            transition: all 0.3s;
+        }
+        .nav-action:hover {
+            background: var(--accent-glow);
+            border-color: var(--accent);
+            box-shadow: 0 0 20px var(--accent-glow);
+        }
+
+        /* ===== Main Content ===== */
+        .app { position: relative; z-index: 1; }
+
+        /* ===== Hero ===== */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 80px 40px 40px;
+            position: relative;
+        }
+        .hero-badge {
+            display: inline-block;
+            font-family: var(--font-display);
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 3px;
+            color: var(--accent);
+            padding: 6px 16px;
+            border: 1px solid var(--glass-border);
+            border-radius: 100px;
+            background: rgba(0, 200, 167, 0.05);
+            margin-bottom: 28px;
+            opacity: 0;
+            animation: fadeInUp 0.8s ease forwards 0.2s;
+        }
+        .hero h1 {
+            font-family: var(--font-body);
+            font-size: clamp(36px, 6vw, 62px);
+            font-weight: 700;
+            line-height: 1.15;
+            letter-spacing: 3px;
+            margin-bottom: 18px;
+            background: linear-gradient(135deg, #ffffff 0%, var(--accent) 55%, var(--accent-blue) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            opacity: 0;
+            animation: fadeInUp 0.8s ease forwards 0.4s;
+        }
+        .hero-subtitle {
+            font-size: 15px;
+            color: var(--text-dim);
+            letter-spacing: 2px;
+            margin-bottom: 40px;
+            opacity: 0;
+            animation: fadeInUp 0.8s ease forwards 0.6s;
+        }
+        .hero-search {
+            display: flex;
+            max-width: 520px;
+            width: 100%;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            overflow: hidden;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            opacity: 0;
+            animation: fadeInUp 0.8s ease forwards 0.8s;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        .hero-search:focus-within {
+            border-color: rgba(0, 200, 167, 0.3);
+            box-shadow: 0 0 30px rgba(0, 200, 167, 0.08);
+        }
+        .hero-search input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            padding: 14px 20px;
+            color: var(--text);
+            font-size: 14px;
+            font-family: var(--font-body);
+        }
+        .hero-search input::placeholder { color: var(--text-muted); }
+        .hero-search button {
+            background: var(--accent);
+            border: none;
+            color: #060d1a;
+            padding: 14px 24px;
+            font-weight: 600;
+            font-size: 14px;
+            font-family: var(--font-display);
+            cursor: pointer;
+            letter-spacing: 0.5px;
+            transition: background 0.3s;
+        }
+        .hero-search button:hover { background: #00e6be; }
+        .scroll-indicator {
+            position: absolute;
+            bottom: 36px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-muted);
+            font-size: 11px;
+            letter-spacing: 2px;
+            opacity: 0;
+            animation: fadeInUp 0.8s ease forwards 1s;
+        }
+        .scroll-arrow {
+            width: 18px; height: 18px;
+            border-right: 1.5px solid var(--text-muted);
+            border-bottom: 1.5px solid var(--text-muted);
+            transform: rotate(45deg);
+            animation: bounce 2s ease-in-out infinite;
+        }
+        @keyframes bounce {
+            0%, 100% { transform: rotate(45deg) translate(0, 0); opacity: 0.4; }
+            50% { transform: rotate(45deg) translate(4px, 4px); opacity: 1; }
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(24px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ===== Stats Bar ===== */
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 40px;
+            gap: 20px;
+        }
+        .stat {
+            text-align: center;
+            padding: 28px 16px;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .stat:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 32px rgba(0, 200, 167, 0.08);
+        }
+        .stat-number {
+            display: block;
+            font-family: var(--font-display);
+            font-size: 34px;
+            font-weight: 700;
+            color: var(--accent);
+            line-height: 1.2;
+        }
+        .stat-label {
+            display: block;
+            font-size: 13px;
+            color: var(--text-dim);
+            margin-top: 6px;
+            letter-spacing: 1px;
+        }
+
+        /* ===== Sections ===== */
+        .section {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 80px 40px;
+        }
+        .section-header {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+        .section-tag {
+            font-family: var(--font-display);
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 3px;
+            color: var(--accent);
+            margin-bottom: 12px;
+        }
+        .section-title {
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+        .section-desc {
+            font-size: 14px;
+            color: var(--text-dim);
+            margin-top: 10px;
+            max-width: 480px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* ===== Category Grid ===== */
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 18px;
+        }
+        .category-card {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius);
+            padding: 26px;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            cursor: pointer;
+            transition: all 0.35s;
+            position: relative;
+            overflow: hidden;
+        }
+        .category-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 3px;
+            background: linear-gradient(90deg, var(--accent), var(--accent-blue));
+            opacity: 0;
+            transition: opacity 0.35s;
+        }
+        .category-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(0, 200, 167, 0.25);
+            box-shadow: 0 12px 40px rgba(0, 200, 167, 0.08);
+        }
+        .category-card:hover::before { opacity: 1; }
+        .card-icon { font-size: 26px; margin-bottom: 14px; }
+        .card-title { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+        .card-count {
+            font-family: var(--font-display);
+            font-size: 12px;
+            color: var(--accent);
+            margin-bottom: 10px;
+            letter-spacing: 0.5px;
+        }
+        .card-desc { font-size: 13px; color: var(--text-dim); line-height: 1.6; }
+
+        /* ===== Featured Cases ===== */
+        .featured-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 18px;
+        }
+        .featured-card {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius);
+            overflow: hidden;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            transition: all 0.35s;
+        }
+        .featured-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 16px 48px rgba(0, 200, 167, 0.08);
+            border-color: rgba(0, 200, 167, 0.25);
+        }
+        .featured-thumb {
+            height: 170px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.5s;
+        }
+        .featured-card:hover .featured-thumb { filter: brightness(1.1); }
+        .featured-tag {
+            position: absolute;
+            top: 12px; left: 12px;
+            font-size: 11px;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            backdrop-filter: blur(8px);
+        }
+        .tag-visual { background: rgba(0, 200, 167, 0.25); color: #00e6be; }
+        .tag-web { background: rgba(59, 130, 255, 0.25); color: #6ba3ff; }
+        .tag-ai { background: rgba(139, 92, 246, 0.25); color: #a78bfa; }
+        .featured-body { padding: 20px; }
+        .featured-title { font-size: 15px; font-weight: 600; margin-bottom: 8px; }
+        .featured-desc { font-size: 13px; color: var(--text-dim); line-height: 1.6; margin-bottom: 14px; }
+        .tech-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+        .tech-tag {
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-dim);
+            letter-spacing: 0.3px;
+        }
+
+        /* ===== CTA Section ===== */
+        .cta-section {
+            text-align: center;
+            padding: 80px 40px;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        .cta-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            letter-spacing: 1px;
+        }
+        .cta-desc {
+            font-size: 14px;
+            color: var(--text-dim);
+            margin-bottom: 28px;
+            line-height: 1.7;
+        }
+        .cta-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--accent), var(--accent-blue));
+            color: #060d1a;
+            padding: 12px 32px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            font-family: var(--font-display);
+            letter-spacing: 0.5px;
+            text-decoration: none;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+        }
+        .cta-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0, 200, 167, 0.25);
+        }
+
+        /* ===== Footer ===== */
+        .footer {
+            text-align: center;
+            padding: 40px;
+            border-top: 1px solid var(--glass-border);
+        }
+        .footer-text {
+            font-size: 13px;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+        }
+        .footer-sub {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 6px;
+            opacity: 0.6;
+        }
+
+        /* ===== Particle Toggle ===== */
+        .particle-toggle {
+            position: fixed;
+            bottom: 24px; right: 24px;
+            z-index: 50;
+            width: 42px; height: 42px;
+            border-radius: 50%;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            color: var(--accent);
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            transition: all 0.3s;
+        }
+        .particle-toggle:hover {
+            background: var(--accent-glow);
+            border-color: var(--accent);
+            box-shadow: 0 0 20px var(--accent-glow);
+        }
+        .particle-panel {
+            position: fixed;
+            bottom: 78px; right: 24px;
+            width: 230px;
+            background: var(--glass-strong);
+            border: 1px solid var(--glass-border);
+            border-radius: 14px;
+            padding: 18px;
+            z-index: 50;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            transform: translateY(10px);
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s;
+        }
+        .particle-panel.open {
+            transform: translateY(0);
+            opacity: 1;
+            pointer-events: all;
+        }
+        .panel-title {
+            font-family: var(--font-display);
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            margin-bottom: 14px;
+            color: var(--text-dim);
+        }
+        .panel-row {
+            margin-bottom: 12px;
+        }
+        .panel-row label {
+            display: block;
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+        .panel-row input[type="range"] {
+            width: 100%;
+            -webkit-appearance: none;
+            background: rgba(255, 255, 255, 0.07);
+            height: 4px;
+            border-radius: 2px;
+            outline: none;
+        }
+        .panel-row input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px; height: 14px;
+            border-radius: 50%;
+            background: var(--accent);
+            cursor: pointer;
+            box-shadow: 0 0 6px var(--accent);
+        }
+        .model-btns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 5px;
+        }
+        .model-btn {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid transparent;
+            color: var(--text-dim);
+            padding: 5px 6px;
+            border-radius: 6px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.25s;
+            font-family: var(--font-body);
+        }
+        .model-btn:hover, .model-btn.active {
+            background: var(--accent-glow);
+            border-color: var(--glass-border);
+            color: var(--accent);
+        }
+
+        /* ===== Scroll Reveal ===== */
+        .reveal {
+            opacity: 0;
+            transform: translateY(28px);
+            transition: opacity 0.7s ease, transform 0.7s ease;
+        }
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .reveal:nth-child(2) { transition-delay: 0.08s; }
+        .reveal:nth-child(3) { transition-delay: 0.16s; }
+        .reveal:nth-child(4) { transition-delay: 0.24s; }
+        .reveal:nth-child(5) { transition-delay: 0.32s; }
+        .reveal:nth-child(6) { transition-delay: 0.4s; }
+
+        /* ===== Scrollbar ===== */
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: rgba(0, 200, 167, 0.18); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(0, 200, 167, 0.3); }
+
+        /* ===== Responsive ===== */
+        @media (max-width: 768px) {
+            .navbar { padding: 0 20px; }
+            .nav-links { display: none; }
+            .hero { padding: 80px 20px 40px; }
+            .stats-bar { grid-template-columns: repeat(2, 1fr); padding: 0 20px; gap: 10px; }
+            .stat { padding: 20px 12px; }
+            .stat-number { font-size: 26px; }
+            .section { padding: 60px 20px; }
+            .category-grid, .featured-grid { grid-template-columns: 1fr; }
+            .cursor-glow { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Particle Background -->
+    <div id="particle-bg"></div>
+
+    <!-- Cursor Glow -->
+    <div class="cursor-glow" id="cursorGlow"></div>
+
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-brand">
+            <span class="brand-dot"></span>
+            中盛集团 · 技术十五部
+        </div>
+        <div class="nav-links">
+            <a href="#cases">精选案例</a>
+            <a href="#categories">技术领域</a>
+            <a href="#about">关于我们</a>
+        </div>
+        <button class="nav-action">提交案例</button>
+    </nav>
+
+    <!-- Page Content -->
+    <main class="app">
+
+        <!-- Hero -->
+        <section class="hero">
+            <span class="hero-badge">CASE LIBRARY v2.0</span>
+            <h1>技术实践案例库</h1>
+            <p class="hero-subtitle">沉淀技术智慧，构建知识图谱</p>
+            <div class="hero-search">
+                <input type="text" placeholder="搜索案例、技术栈、项目名称..." id="searchInput" />
+                <button id="searchBtn">搜索</button>
+            </div>
+            <div class="scroll-indicator">
+                <span>向下滚动探索</span>
+                <div class="scroll-arrow"></div>
+            </div>
+        </section>
+
+        <!-- Stats -->
+        <section class="stats-bar reveal" id="stats">
+            <div class="stat">
+                <span class="stat-number" data-target="128">0</span>
+                <span class="stat-label">项目案例</span>
+            </div>
+            <div class="stat">
+                <span class="stat-number" data-target="6">0</span>
+                <span class="stat-label">技术领域</span>
+            </div>
+            <div class="stat">
+                <span class="stat-number" data-target="36">0</span>
+                <span class="stat-label">团队成员</span>
+            </div>
+            <div class="stat">
+                <span class="stat-number" data-target="99">0</span>
+                <span class="stat-label">满意度 %</span>
+            </div>
+        </section>
+
+        <!-- Categories -->
+        <section class="section" id="categories">
+            <div class="section-header reveal">
+                <div class="section-tag">TECH DOMAINS</div>
+                <h2 class="section-title">技术领域</h2>
+                <p class="section-desc">六大核心技术方向，覆盖从需求到交付的完整链路</p>
+            </div>
+            <div class="category-grid">
+                <div class="category-card reveal">
+                    <div class="card-icon">&#127760;</div>
+                    <div class="card-title">Web 应用开发</div>
+                    <div class="card-count">23 个案例</div>
+                    <div class="card-desc">企业级Web应用、SaaS平台、响应式门户网站开发</div>
+                </div>
+                <div class="category-card reveal">
+                    <div class="card-icon">&#128241;</div>
+                    <div class="card-title">移动端开发</div>
+                    <div class="card-count">18 个案例</div>
+                    <div class="card-desc">iOS/Android原生、跨平台方案、微信小程序生态</div>
+                </div>
+                <div class="category-card reveal">
+                    <div class="card-icon">&#128202;</div>
+                    <div class="card-title">数据可视化</div>
+                    <div class="card-count">31 个案例</div>
+                    <div class="card-desc">大屏展示、BI报表、实时监控看板、地理信息系统</div>
+                </div>
+                <div class="category-card reveal">
+                    <div class="card-icon">&#128279;</div>
+                    <div class="card-title">系统集成</div>
+                    <div class="card-count">27 个案例</div>
+                    <div class="card-desc">API网关、微服务架构、中间件开发、数据中台</div>
+                </div>
+                <div class="category-card reveal">
+                    <div class="card-icon">&#127912;</div>
+                    <div class="card-title">UI/UX 设计</div>
+                    <div class="card-count">15 个案例</div>
+                    <div class="card-desc">交互设计、用户研究、设计系统、品牌视觉规范</div>
+                </div>
+                <div class="category-card reveal">
+                    <div class="card-icon">&#129302;</div>
+                    <div class="card-title">AI 解决方案</div>
+                    <div class="card-count">14 个案例</div>
+                    <div class="card-desc">智能推荐、自然语言处理、计算机视觉、AI Agent</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Featured Cases -->
+        <section class="section" id="cases">
+            <div class="section-header reveal">
+                <div class="section-tag">FEATURED CASES</div>
+                <h2 class="section-title">精选案例</h2>
+                <p class="section-desc">从实际项目中提炼的最佳实践，展示团队的技术深度</p>
+            </div>
+            <div class="featured-grid">
+                <div class="featured-card reveal">
+                    <div class="featured-thumb" style="background: linear-gradient(135deg, #0a2540 0%, #00c9a7 100%);">
+                        <span class="featured-tag tag-visual">数据可视化</span>
+                    </div>
+                    <div class="featured-body">
+                        <div class="featured-title">智慧城市运营中心</div>
+                        <div class="featured-desc">城市级大屏可视化平台，整合交通、环境、能源多维度实时数据流</div>
+                        <div class="tech-tags">
+                            <span class="tech-tag">React</span>
+                            <span class="tech-tag">D3.js</span>
+                            <span class="tech-tag">WebSocket</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="featured-card reveal">
+                    <div class="featured-thumb" style="background: linear-gradient(135deg, #0a1a40 0%, #3b82ff 100%);">
+                        <span class="featured-tag tag-web">Web 应用</span>
+                    </div>
+                    <div class="featured-body">
+                        <div class="featured-title">CloudFlow 协作平台</div>
+                        <div class="featured-desc">企业级SaaS全栈应用，支持实时协作、权限管理与工作流自定义编排</div>
+                        <div class="tech-tags">
+                            <span class="tech-tag">Vue3</span>
+                            <span class="tech-tag">Node.js</span>
+                            <span class="tech-tag">PostgreSQL</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="featured-card reveal">
+                    <div class="featured-thumb" style="background: linear-gradient(135deg, #1a0a40 0%, #8b5cf6 100%);">
+                        <span class="featured-tag tag-ai">AI 解决方案</span>
+                    </div>
+                    <div class="featured-body">
+                        <div class="featured-title">VisionGuard 质检系统</div>
+                        <div class="featured-desc">AI驱动的工业质检方案，基于深度学习实现产品缺陷自动识别与分类</div>
+                        <div class="tech-tags">
+                            <span class="tech-tag">Python</span>
+                            <span class="tech-tag">TensorFlow</span>
+                            <span class="tech-tag">OpenCV</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CTA -->
+        <section class="cta-section reveal" id="about">
+            <div class="section-tag">JOIN US</div>
+            <h2 class="cta-title">持续积累，开放共享</h2>
+            <p class="cta-desc">
+                每一个项目都是宝贵的知识资产。提交你的案例，让团队共同成长。<br/>
+                我们相信，最好的技术文档，来自真实的工程实践。
+            </p>
+            <button class="cta-btn">提交新案例</button>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p class="footer-text">&#169; 2026 中盛集团 · 技术十五部 · 案例库</p>
+            <p class="footer-sub">Crafted with precision by Claude</p>
+        </footer>
+    </main>
+
+    <!-- Particle Settings -->
+    <button class="particle-toggle" id="particleToggle" title="粒子效果设置">&#9881;</button>
+    <div class="particle-panel" id="particlePanel">
+        <div class="panel-title">PARTICLE FX</div>
+        <div class="panel-row">
+            <label>模型形态</label>
+            <div class="model-btns">
+                <button class="model-btn active" data-model="nebula">星云</button>
+                <button class="model-btn" data-model="firework">烟花</button>
+                <button class="model-btn" data-model="saturn">土星</button>
+                <button class="model-btn" data-model="flower">花朵</button>
+            </div>
+        </div>
+        <div class="panel-row">
+            <label>辉光强度</label>
+            <input type="range" id="bloomSlider" min="0" max="200" value="80" />
+        </div>
+        <div class="panel-row">
+            <label>粒子密度</label>
+            <input type="range" id="densitySlider" min="800" max="5000" step="100" value="2500" />
+        </div>
+    </div>
+
+    <!-- Three.js Import Map -->
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+        }
+    }
+    </script>
+
+    <!-- Particle System (ES Module) -->
+    <script type="module">
+        import * as THREE from "three";
+        import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
+        import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
+        import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
+
+        // ─── Configuration ───
+        let PARTICLE_COUNT = 2500;
+        let currentModel = "nebula";
+        let bloomBase = 0.80;
+
+        const container = document.getElementById("particle-bg");
+
+        // ─── Scene ───
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x060d1a, 0.007);
+
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1200);
+        camera.position.set(0, 0, 55);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.setClearColor(0x060d1a, 1);
+        container.appendChild(renderer.domElement);
+
+        // ─── Post Processing ───
+        const composer = new EffectComposer(renderer);
+        composer.addPass(new RenderPass(scene, camera));
+
+        const bloomPass = new UnrealBloomPass(
+            new THREE.Vector2(window.innerWidth, window.innerHeight),
+            bloomBase, 0.45, 0.14
+        );
+        composer.addPass(bloomPass);
+
+        const clock = new THREE.Clock();
+
+        // ─── Mouse State ───
+        const mouse = { x: 0, y: 0, dx: 0, dy: 0, speed: 0 };
+        let burstPower = 0;
+
+        // ─── Particle Buffers ───
+        let particleSystem, pGeo, pMat;
+        let pos, tPos, col, sz, rnd;
+
+        initParticles(PARTICLE_COUNT);
+        initStars();
+        animate();
+
+        function initParticles(count) {
+            if (particleSystem) {
+                scene.remove(particleSystem);
+                pGeo.dispose();
+                pMat.dispose();
+            }
+            PARTICLE_COUNT = count;
+            pos = new Float32Array(PARTICLE_COUNT * 3);
+            tPos = new Float32Array(PARTICLE_COUNT * 3);
+            col = new Float32Array(PARTICLE_COUNT * 3);
+            sz = new Float32Array(PARTICLE_COUNT);
+            rnd = new Float32Array(PARTICLE_COUNT * 4);
+
+            for (let i = 0; i < PARTICLE_COUNT; i++) {
+                const i3 = i * 3;
+                pos[i3]     = (Math.random() - 0.5) * 60;
+                pos[i3 + 1] = (Math.random() - 0.5) * 60;
+                pos[i3 + 2] = (Math.random() - 0.5) * 60;
+                tPos[i3]     = pos[i3];
+                tPos[i3 + 1] = pos[i3 + 1];
+                tPos[i3 + 2] = pos[i3 + 2];
+                sz[i] = Math.random() * 2.0 + 0.5;
+                rnd[i * 4]     = Math.random();
+                rnd[i * 4 + 1] = Math.random();
+                rnd[i * 4 + 2] = Math.random();
+                rnd[i * 4 + 3] = Math.random();
+            }
+
+            pGeo = new THREE.BufferGeometry();
+            pGeo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+            pGeo.setAttribute("color", new THREE.BufferAttribute(col, 3));
+            pGeo.setAttribute("size", new THREE.BufferAttribute(sz, 1));
+
+            pMat = new THREE.ShaderMaterial({
+                transparent: true,
+                depthWrite: false,
+                vertexColors: true,
+                blending: THREE.AdditiveBlending,
+                uniforms: {
+                    uTime: { value: 0 },
+                    uPR: { value: Math.min(window.devicePixelRatio, 2) }
+                },
+                vertexShader: `
+                    attribute float size;
+                    varying vec3 vColor;
+                    varying float vAlpha;
+                    uniform float uTime;
+                    uniform float uPR;
+                    void main() {
+                        vColor = color;
+                        vec4 mv = modelViewMatrix * vec4(position, 1.0);
+                        float depth = clamp(1.0 - (-mv.z / 200.0), 0.2, 1.0);
+                        float pulse = 1.0 + 0.18 * sin(uTime * 2.0 + position.x * 0.05 + position.y * 0.04);
+                        gl_PointSize = size * pulse * uPR * (280.0 / max(22.0, -mv.z));
+                        vAlpha = depth;
+                        gl_Position = projectionMatrix * mv;
+                    }
+                `,
+                fragmentShader: `
+                    varying vec3 vColor;
+                    varying float vAlpha;
+                    void main() {
+                        vec2 uv = gl_PointCoord - vec2(0.5);
+                        float d = length(uv);
+                        float core = smoothstep(0.16, 0.0, d);
+                        float glow = smoothstep(0.42, 0.02, d) * 0.5;
+                        float alpha = (core + glow) * vAlpha * 0.82;
+                        vec3 c = vColor + glow * vec3(0.85, 0.55, 0.15);
+                        gl_FragColor = vec4(c, alpha);
+                    }
+                `
+            });
+
+            particleSystem = new THREE.Points(pGeo, pMat);
+            scene.add(particleSystem);
+            updateTargets(0);
+        }
+
+        function initStars() {
+            const N = 2800;
+            const sp = new Float32Array(N * 3);
+            const sc = new Float32Array(N * 3);
+            for (let i = 0; i < N; i++) {
+                const r = 140 + Math.random() * 380;
+                const th = Math.random() * Math.PI * 2;
+                const ph = Math.acos(2 * Math.random() - 1);
+                const i3 = i * 3;
+                sp[i3]     = r * Math.sin(ph) * Math.cos(th);
+                sp[i3 + 1] = r * Math.sin(ph) * Math.sin(th);
+                sp[i3 + 2] = r * Math.cos(ph);
+                const c = new THREE.Color();
+                c.setHSL(0.58 + Math.random() * 0.18, 0.45, 0.28 + Math.random() * 0.22);
+                sc[i3] = c.r; sc[i3 + 1] = c.g; sc[i3 + 2] = c.b;
+            }
+            const g = new THREE.BufferGeometry();
+            g.setAttribute("position", new THREE.BufferAttribute(sp, 3));
+            g.setAttribute("color", new THREE.BufferAttribute(sc, 3));
+            const m = new THREE.PointsMaterial({
+                size: 0.55, vertexColors: true, transparent: true,
+                opacity: 0.5, depthWrite: false, blending: THREE.AdditiveBlending
+            });
+            const stars = new THREE.Points(g, m);
+            scene.add(stars);
+            (function spin() {
+                requestAnimationFrame(spin);
+                stars.rotation.y += 0.00018;
+                stars.rotation.x += 0.00008;
+            })();
+        }
+
+        // ─── Model Generators ───
+        function updateTargets(t) {
+            for (let i = 0; i < PARTICLE_COUNT; i++) {
+                const f = i / PARTICLE_COUNT;
+                const i3 = i * 3;
+                let p;
+                if (currentModel === "nebula")        p = nebula(f, i, t);
+                else if (currentModel === "firework")  p = firework(f, i, t);
+                else if (currentModel === "saturn")    p = saturn(f, i, t);
+                else                                   p = flower(f, i, t);
+                tPos[i3] = p.x; tPos[i3 + 1] = p.y; tPos[i3 + 2] = p.z;
+            }
+        }
+
+        function nebula(f, i, t) {
+            const r = Math.sqrt(f) * 28;
+            const a = f * Math.PI * 16 + rnd[i * 4] * Math.PI * 2;
+            const s = 1 + 0.35 * Math.sin(a * 3 + t * 0.28);
+            return new THREE.Vector3(
+                Math.cos(a) * r * s,
+                Math.sin(a) * r * s,
+                Math.sin(a * 0.7 + t * 0.35) * 14 + (rnd[i * 4 + 1] - 0.5) * 16
+            );
+        }
+
+        function firework(f, i, t) {
+            const a = rnd[i * 4] * Math.PI * 2;
+            const b = Math.acos(2 * rnd[i * 4 + 1] - 1);
+            const shell = Math.floor(f * 8);
+            const r = 6 + shell * 3.2 + Math.sin(t * 1.4 + shell) * 1.8;
+            return new THREE.Vector3(
+                Math.sin(b) * Math.cos(a) * r,
+                Math.sin(b) * Math.sin(a) * r,
+                Math.cos(b) * r
+            );
+        }
+
+        function saturn(f, i, t) {
+            if (f < 0.68) {
+                const l = f / 0.68;
+                const a = l * Math.PI * 2 * 10 + rnd[i * 4] * 0.15;
+                const r = 18 + rnd[i * 4 + 1] * 11;
+                return new THREE.Vector3(
+                    Math.cos(a) * r,
+                    Math.sin(a) * r * 0.36,
+                    Math.sin(a * 2 + t) * 1 + (rnd[i * 4 + 2] - 0.5) * 2
+                );
+            }
+            const th = rnd[i * 4] * Math.PI * 2;
+            const ph = Math.acos(2 * rnd[i * 4 + 1] - 1);
+            const r = 9 * Math.cbrt((f - 0.68) / 0.32 + 0.05);
+            return new THREE.Vector3(
+                Math.sin(ph) * Math.cos(th) * r,
+                Math.sin(ph) * Math.sin(th) * r,
+                Math.cos(ph) * r
+            );
+        }
+
+        function flower(f, i, t) {
+            const a = f * Math.PI * 2 * 8;
+            const petals = 6;
+            const r = 6 + 16 * Math.abs(Math.sin(petals * a));
+            const tw = t * 0.18 + rnd[i * 4] * 0.35;
+            return new THREE.Vector3(
+                Math.cos(a + tw) * r,
+                Math.sin(a + tw) * r,
+                Math.sin(a * 3 + t) * 7 + Math.cos(petals * a) * 2.5
+            );
+        }
+
+        // ─── Render Loop ───
+        function animate() {
+            requestAnimationFrame(animate);
+            const t = clock.getElapsedTime();
+            pMat.uniforms.uTime.value = t;
+            updateTargets(t);
+
+            const pa = pGeo.attributes.position.array;
+            const ca = pGeo.attributes.color.array;
+
+            const mf = Math.min(mouse.speed * 14, 2.2);
+            const dir = mouse.dx > 0 ? 1 : -1;
+            const exp = 1 + mf * 0.09 * dir + burstPower * 0.65 + Math.sin(t * 1.1) * 0.02;
+
+            particleSystem.rotation.x += (mouse.y * 0.55 - particleSystem.rotation.x) * 0.028;
+            particleSystem.rotation.y += (mouse.x * 0.9 - particleSystem.rotation.y) * 0.028;
+            particleSystem.rotation.z += 0.0018 + mouse.dx * 0.008;
+
+            for (let i = 0; i < PARTICLE_COUNT; i++) {
+                const i3 = i * 3;
+                let tx = tPos[i3] * exp;
+                let ty = tPos[i3 + 1] * exp;
+                let tz = tPos[i3 + 2] * exp;
+
+                const w = Math.sin(t * 1.6 + i * 0.018) * (0.7 + mf * 1.8);
+                tx += Math.sin(i * 0.016 + t) * w;
+                ty += Math.cos(i * 0.019 + t) * w;
+                tz += Math.sin(i * 0.013 + t * 1.1) * w;
+
+                pa[i3]     += (tx - pa[i3]) * 0.038;
+                pa[i3 + 1] += (ty - pa[i3 + 1]) * 0.038;
+                pa[i3 + 2] += (tz - pa[i3 + 2]) * 0.038;
+
+                // Warm gold → amber → rose palette (complementary to teal UI)
+                const hueBase = (i / PARTICLE_COUNT) * 0.12;
+                const hue = 0.04 + hueBase + Math.sin(t * 0.35 + i * 0.007) * 0.04;
+                const lit = 0.5 + Math.sin(t * 0.8 + i) * 0.06;
+                const c = new THREE.Color();
+                c.setHSL(hue % 1, 0.82, lit);
+                ca[i3] = c.r; ca[i3 + 1] = c.g; ca[i3 + 2] = c.b;
+            }
+
+            pGeo.attributes.position.needsUpdate = true;
+            pGeo.attributes.color.needsUpdate = true;
+
+            burstPower *= 0.91;
+            mouse.speed *= 0.87;
+
+            camera.position.x += (mouse.x * 3.5 - camera.position.x) * 0.014;
+            camera.position.y += (mouse.y * 2.8 - camera.position.y) * 0.014;
+            camera.position.z = 55 + Math.sin(t * 0.28) * 2.5 - burstPower * 5;
+            camera.lookAt(0, 0, 0);
+
+            bloomPass.strength = bloomBase + burstPower * 0.7 + Math.min(mouse.speed * 2.5, 0.35);
+            composer.render();
+        }
+
+        // ─── Events ───
+        const glow = document.getElementById("cursorGlow");
+
+        document.addEventListener("mousemove", e => {
+            const nx = (e.clientX / window.innerWidth) * 2 - 1;
+            const ny = -(e.clientY / window.innerHeight) * 2 + 1;
+            mouse.dx = nx - mouse.x;
+            mouse.dy = ny - mouse.y;
+            mouse.speed = Math.min(Math.sqrt(mouse.dx * mouse.dx + mouse.dy * mouse.dy) * 8, 1.4);
+            mouse.x = nx;
+            mouse.y = ny;
+            glow.style.left = e.clientX + "px";
+            glow.style.top = e.clientY + "px";
+        });
+
+        document.addEventListener("click", e => {
+            if (!e.target.closest(".navbar, .particle-panel, .particle-toggle, .hero-search, .category-card, .featured-card, .nav-action, .model-btn, .cta-btn")) {
+                burstPower = 0.9;
+            }
+        });
+
+        window.addEventListener("resize", () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            composer.setSize(window.innerWidth, window.innerHeight);
+            bloomPass.setSize(window.innerWidth, window.innerHeight);
+            if (pMat) pMat.uniforms.uPR.value = Math.min(window.devicePixelRatio, 2);
+        });
+
+        // ─── Panel Controls ───
+        document.getElementById("particleToggle").addEventListener("click", () => {
+            document.getElementById("particlePanel").classList.toggle("open");
+        });
+
+        document.querySelectorAll(".model-btn").forEach(btn => {
+            btn.addEventListener("click", () => {
+                document.querySelectorAll(".model-btn").forEach(b => b.classList.remove("active"));
+                btn.classList.add("active");
+                currentModel = btn.dataset.model;
+                burstPower = 0.7;
+            });
+        });
+
+        document.getElementById("bloomSlider").addEventListener("input", e => {
+            bloomBase = e.target.value / 100;
+        });
+
+        document.getElementById("densitySlider").addEventListener("change", e => {
+            initParticles(Number(e.target.value));
+            burstPower = 0.7;
+        });
+    </script>
+
+    <!-- UI Interactions -->
+    <script>
+        // Navbar scroll effect
+        const navbar = document.getElementById("navbar");
+        window.addEventListener("scroll", () => {
+            navbar.classList.toggle("scrolled", window.scrollY > 50);
+        });
+
+        // Scroll reveal
+        const reveals = document.querySelectorAll(".reveal");
+        const revealObs = new IntersectionObserver(entries => {
+            entries.forEach(e => { if (e.isIntersecting) e.target.classList.add("visible"); });
+        }, { threshold: 0.12 });
+        reveals.forEach(el => revealObs.observe(el));
+
+        // Counter animation
+        const statNums = document.querySelectorAll(".stat-number");
+        let counted = false;
+        const statsObs = new IntersectionObserver(entries => {
+            entries.forEach(e => {
+                if (e.isIntersecting && !counted) {
+                    counted = true;
+                    statNums.forEach(num => {
+                        const target = parseInt(num.dataset.target);
+                        let cur = 0;
+                        const step = Math.max(1, Math.floor(target / 55));
+                        const timer = setInterval(() => {
+                            cur += step;
+                            if (cur >= target) { cur = target; clearInterval(timer); }
+                            num.textContent = cur;
+                        }, 28);
+                    });
+                }
+            });
+        }, { threshold: 0.3 });
+        statsObs.observe(document.getElementById("stats"));
+
+        // Close panel on outside click
+        document.addEventListener("click", e => {
+            const panel = document.getElementById("particlePanel");
+            const toggle = document.getElementById("particleToggle");
+            if (!panel.contains(e.target) && !toggle.contains(e.target)) {
+                panel.classList.remove("open");
+            }
+        });
+    </script>
+</body>
+</html>
