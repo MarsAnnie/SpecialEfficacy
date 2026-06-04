@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Skill(frontend-design)",
+      "mcp__playwright__browser_evaluate",
+      "Bash(git --version)",
+      "Bash(ssh -V)",
+      "Bash(ssh-keygen *)",
+      "Bash(clip *)",
+      "Bash(ssh -T git@github-first)",
+      "Bash(ssh -T git@github-second)"
+    ]
+  }
+}
